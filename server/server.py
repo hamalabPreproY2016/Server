@@ -37,7 +37,7 @@ def do_upload():
         return 'File extension not allowed!'
     save_path = get_save_path()
     upload.save(save_path, True)
-    result = vokaturi.analyze("test.wav")
+    result = vokaturi.analyze(save_path)
     body = json.dumps({'message' : result})
     r = HTTPResponse(status=200, body=body)
     r.set_header('Content-Type', 'application/json')
