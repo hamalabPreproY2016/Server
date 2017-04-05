@@ -22,7 +22,6 @@ def psdauc(Fxx, Pxx, vlf=0.04, lf=0.15, hf=0.4):
     return rvlf, rlf, rhf
 
 
-#Fxx:Hz Pxx:パワー その他:パワー密度
 def psd(rri):
     #Create time array
     t = cumsum(rri) / 1000.0
@@ -82,7 +81,6 @@ def psd(rri):
 
 border = 2.0
 
-#怒りを返すよ 引数は心拍変動の一次元配列
 def checkAngry(rri):
 
     Fxx, Pxx, vlf, lf, hf = psd(rri);

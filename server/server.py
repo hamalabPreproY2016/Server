@@ -4,6 +4,7 @@ import bottle.ext.sqlalchemy
 import sqlalchemy
 import sqlalchemy.ext.declarative
 import vokaturi
+import psdRRi
 import simplejson as json
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
@@ -29,8 +30,17 @@ sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 #            <input type="file" name="upload"></br>
 #        </form>
 #    '''
+@route('/hert', method='POST')
+def hert_analyze():
+     jsonData = request.json
+     array = jsonData['array']
+     Fxx, Pxx, vlf, lf, hf, isAngry = psdRRi.checkAngry(array)     
+     body = json.dumps({'message' : isAngry})
+     r = HTTPResponse(status=200, body=body)
+     r.set_header('Content-Type', 'application/json')
+     return r
 
-@route('/upload', method='POST')
+@route('/voice', method='POST')
 def do_upload():
     upload = request.files.get('upload', '')
     if not upload.filename.lower().endswith(('.wav')):
