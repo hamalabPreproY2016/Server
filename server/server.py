@@ -1,3 +1,4 @@
+# vim:fileencoding=utf-8
 from bottle import route, run, template, request, static_file, url, get, post, response, error, abort, redirect, os, HTTPResponse
 import sys, codecs
 import bottle.ext.sqlalchemy
@@ -6,6 +7,7 @@ import sqlalchemy.ext.declarative
 import vokaturi
 import psdRRi
 import simplejson as json
+import tempfile
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
@@ -42,18 +44,19 @@ def hert_analyze():
 
 @route('/voice', method='POST')
 def do_upload():
+    # uploadプロパティから音声ファイルを取得
     upload = request.files.get('upload', '')
     if not upload.filename.lower().endswith(('.wav')):
         return 'File extension not allowed!'
-    save_path = get_save_path()
-    upload.save(save_path, True)
-    result = vokaturi.analyze(save_path)
+    # tempfileの名前を取得してそこに保存
+    tf = tempfile.NamedTemporaryFile()
+    upload.save(tf.name, True)
+    # Vokaturiをして解析
+    result = vokaturi.analyze(tf.name)
+    # 解析結果を保存
     body = json.dumps({'message' : result})
     r = HTTPResponse(status=200, body=body)
     r.set_header('Content-Type', 'application/json')
     return r
 
-def get_save_path():
-    path_dir = "./static/img/000.wav"
-    return path_dir
 run(host="0.0.0.0", port=8080, debug=True, reloader=True)
