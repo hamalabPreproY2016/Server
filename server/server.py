@@ -30,12 +30,12 @@ sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 #            <input type="file" name="upload"></br>
 #        </form>
 #    '''
-@route('/hert', method='POST')
+@route('/heart', method='POST')
 def hert_analyze():
      jsonData = request.json
      array = jsonData['array']
      Fxx, Pxx, vlf, lf, hf, isAngry = psdRRi.checkAngry(array)     
-     body = json.dumps({'message' : isAngry})
+     body = json.dumps({'result' : isAngry})
      r = HTTPResponse(status=200, body=body)
      r.set_header('Content-Type', 'application/json')
      return r
