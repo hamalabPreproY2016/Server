@@ -8,6 +8,7 @@ import vokaturi
 import psdRRi
 import simplejson as json
 import tempfile
+import emg
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
@@ -32,6 +33,16 @@ sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 #            <input type="file" name="upload"></br>
 #        </form>
 #    '''
+@route('/emg-ave', method='POST')
+def hert_analyze():
+      jsonData = request.json
+      array = jsonData['array']
+      average = emg.Getave(array)
+      body = json.dumps({'average' : average})
+      r = HTTPResponse(status=200, body=body)
+      r.set_header('Content-Type', 'application/json')
+      return r
+
 @route('/heart', method='POST')
 def hert_analyze():
      jsonData = request.json
@@ -54,7 +65,7 @@ def do_upload():
     # Vokaturiをして解析
     result = vokaturi.analyze(tf.name)
     # 解析結果を保存
-    body = json.dumps({'message' : result})
+    body = json.dumps({'result' : result})
     r = HTTPResponse(status=200, body=body)
     r.set_header('Content-Type', 'application/json')
     return r
