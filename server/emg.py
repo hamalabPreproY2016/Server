@@ -1,13 +1,12 @@
 # vim:fileencoding=utf-8
-def Getave( c=[], repeat=512 ) :
+def Getave( c ) :
      sum=0
-     for i in range( 0, repeat ):
-         if i!=0 :
-             sum = sum + c[i]
-     ave = sum/repeat
+     for i in range(len(c)):
+             sum = sum + c[i]["value"]
+     ave = sum/len(c)
      return ave
 
-def Getnow( before, after ) :
+def Getnow( before, after, ave ) :
      now1 = 0
      now2 = 0
      result = 0

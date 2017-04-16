@@ -33,10 +33,21 @@ sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 #            <input type="file" name="upload"></br>
 #        </form>
 #    '''
-@route('/emg-ave', method='POST')
+@route('/emg', method='POST')
 def hert_analyze():
       jsonData = request.json
       array = jsonData['array']
+      average = emg.Getave(array)
+      body = json.dumps({'average' : average})
+      r = HTTPResponse(status=200, body=body)
+      r.set_header('Content-Type', 'application/json')
+      return r
+
+@route('/emg-ave', method='POST')
+def hert_analyze():
+      jsonData = request.json
+      print json.dumps(jsonData);
+      array = jsonData['emg']
       average = emg.Getave(array)
       body = json.dumps({'average' : average})
       r = HTTPResponse(status=200, body=body)
@@ -56,7 +67,7 @@ def hert_analyze():
 @route('/voice', method='POST')
 def do_upload():
     # uploadプロパティから音声ファイルを取得
-    upload = request.files.get('upload', '')
+    upload = request.files.get('upload2', '')
     if not upload.filename.lower().endswith(('.wav')):
         return 'File extension not allowed!'
     # tempfileの名前を取得してそこに保存
@@ -69,5 +80,24 @@ def do_upload():
     r = HTTPResponse(status=200, body=body)
     r.set_header('Content-Type', 'application/json')
     return r
+
+@route('/angry', method='POST')
+def do_upload():
+    # uploadプロパティから音声ファイルを取得
+    upload = request.files.get('upload2', '')
+    if not upload.filename.lower().endswith(('.wav')):
+        return 'File extension not allowed!'
+    # tempfileの名前を取得してそこに保存
+    tf = tempfile.NamedTemporaryFile()
+    upload.save(tf.name, True)
+    # Vokaturiをして解析
+    result = vokaturi.analyze(tf.name)
+    # 解析結果を保存
+    body = json.dumps({'result' : result})
+    r = HTTPResponse(status=200, body=body)
+    r.set_header('Content-Type', 'application/json')
+    return r
+
+
 
 run(host="0.0.0.0", port=8080, debug=True, reloader=True)
