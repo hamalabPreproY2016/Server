@@ -6,6 +6,15 @@ def Getave( c ) :
      ave = sum/len(c)
      return ave
 
+def EmgAnarayze(arr, ave) :
+    for i in range(len(arr) - 1):
+        before = arr[i]['value']
+        print before
+        after = arr[i + 1]['value']
+        result = Getnow(before, after, ave)
+        arr[i + 1].update({"result" : result})
+    return True 
+
 def Getnow( before, after, ave ) :
      now1 = 0
      now2 = 0
