@@ -77,7 +77,10 @@ def do_upload():
     # 音声を解析
     tf = tempfile.NamedTemporaryFile()
     voice.save(tf.name, True)
-    result.update({"voice" : {"result" : vokaturi.analyze(tf.name)}})
+    vr = vokaturi.analyze(tf.name)
+    if (vr == -1) :
+        vr = 0
+    result.update({"voice" : {"result" : vr}})
     
     # 写真を解析
     rf = tempfile.NamedTemporaryFile()
