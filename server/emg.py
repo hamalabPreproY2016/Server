@@ -12,8 +12,9 @@ def EmgAnarayze(arr, ave) :
         print before
         after = arr[i + 1]['value']
         result = Getnow(before, after, ave)
-        arr[i + 1].update({"result" : result})
-    return True 
+        if (result != 2):
+            return True
+    return False 
 
 def Getnow( before, after, ave ) :
      now1 = 0
@@ -21,7 +22,7 @@ def Getnow( before, after, ave ) :
      result = 0
      if int(after) < 900 :
          now1 = 1
-         bunshi = float(after)-float(before)
+     bunshi = float(after)-float(before)
      if bunshi/21 > -1.5 and bunshi/21 < 1.5:
          now2=1
      if now1==now2 :
