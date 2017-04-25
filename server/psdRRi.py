@@ -81,7 +81,9 @@ def psd(rri):
 
 border = 2.0
 
-def checkAngry(rri):
+def checkAngry(array):
+
+    rri = [x["value"] for x in array]
 
     Fxx, Pxx, vlf, lf, hf = psd(rri);
 
