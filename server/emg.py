@@ -7,11 +7,19 @@ MOVE_RATE = 0.4
 # 怒った時の割合
 ANGRY_RATE = 0.002 
 
+# 平均を求める関数
+def Getave( c ) :
+      sum=0
+      for i in range(len(c)):
+              sum = sum + c[i]["value"]
+      ave = sum/len(c)
+      return ave
+
 # MVEを求める関数
 # 配列から2要素間隔で平均値を出し、その最大値をMVEとする 
 def GetMve( c ) :
     ave_list = []
-    for i in range(len() / 2):
+    for i in range(len(c) / 2):
         begin = i * 2
         f = c[begin]["value"]
         s = c[begin + 1]["value"]
