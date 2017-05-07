@@ -9,16 +9,29 @@ import psdRRi
 import simplejson as json
 import tempfile
 import emg
+import subprocess
+from discrimination import disc
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
 @route('/emg-ave', method='POST')
-def hert_analyze():
+def EmgAverage():
       jsonData = request.json
-      print json.dumps(jsonData);
       array = jsonData['emg']
       average = emg.Getave(array)
+      print "average" + str(average)
       body = json.dumps({'average' : average})
+      r = HTTPResponse(status=200, body=body)
+      r.set_header('Content-Type', 'application/json')
+      return r
+
+@route('/emg-mve', method='POST')
+def EmgMVE():
+      jsonData = request.json
+      array = jsonData['emg']
+      mve = emg.GetMve(array)
+      print "mve : " + str(mve)
+      body = json.dumps({'mve' : mve})
       r = HTTPResponse(status=200, body=body)
       r.set_header('Content-Type', 'application/json')
       return r
@@ -60,32 +73,47 @@ def do_upload():
     if not face.filename.lower().endswith('.jpg'):
         return 'File extension not allowed!!'
     jsonData = json.loads(request.forms.get('json'))
-    emgAve = jsonData['emg-ave']
+    emgAve = jsonData['emg-mve']
     emgList = jsonData['emg']
     heartrate = jsonData['heartrate']
     sendTime = jsonData['send-time']
-    
+    mve = 500 
+    f = open('write.json', 'w')
+    f.write(json.dumps(jsonData))
+    f.close() 
     # 結果を入れる辞書型を作成 返す送信時間を入れる
     result = {"send-time" : sendTime}
     
-    # 心拍を解析
-    result.update({"heartrate" : {"result" : False}})    
+    # 心拍を解析 angryValueを返す
+    Fxx, Pxx, vlf, lf, hf, isAngry = psdRRi.checkAngry(heartrate)
+    result.update({"heartrate" : {"angryValue" :  1 if isAngry else 0}})
+    print "analyze face : " + str(isAngry)   
 
-    # 筋電を解析
-    result.update({"emg" : {"result" : emg.EmgAnarayze(emgList, emgAve)}})
+    # 筋電を解析 angryValue, isMove
+    moveF, isAngryByEmg = emg.EmgAnarayze(emgList, emg)
+    print "is Move" + str(moveF)
+    print "analyze emg : " + str(isAngryByEmg)
+    result.update({"emg" : {"angryValue" : 1 if isAngryByEmg else 0, "isMove" : moveF}})
     
-    # 音声を解析
+    # 音声を解析 angryValue, enabled
     tf = tempfile.NamedTemporaryFile()
     voice.save(tf.name, True)
-    vr = vokaturi.analyze(tf.name)
-    if (vr == -1) :
-        vr = 0
-    result.update({"voice" : {"result" : vr}})
+    subprocess.call( ["sh", "wavConverter.sh", str(tf.name)] )
+    enabled, isAngryByVoice = vokaturi.analyze(tf.name)
+    print "analyze-voice : " + str(isAngryByVoice)
+    result.update({"voice" : {"angryValue" :  isAngryByVoice, "enabled" : enabled}})
+    tf.close()
     
-    # 写真を解析
+    # 写真を解析 angryValue, isFace
     rf = tempfile.NamedTemporaryFile()
     face.save(rf.name, True)
-    result.update({"face" : {"result" : True}})
+    face.save("./temp.jpg", True)
+    isFace, ff = disc(rf.name)
+    if not isFace :
+        print "notFace"
+    print "analyze-face : " + str(ff)
+    result.update({"face" : {"angryValue" : ff, "isFace" : isFace}})
+    rf.close()
 
     # 本質的な怒りを解析
     angryBody = False
