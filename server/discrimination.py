@@ -1,4 +1,4 @@
-#USAGE
+
 # python facial_landmarks.py --shape-predictor shape_predictor_68_face_landmarks.dat --image images/example_01.jpg 
 
 # import the necessary packages
@@ -23,6 +23,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
+global model_data
+model_data = np.genfromtxt(open("ffp.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 
 def disc(file):
 	warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -36,8 +38,6 @@ def disc(file):
 	image = cv2.imread(file)
 	image = imutils.resize(image, width=500)
 	gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	#if detector(gray, 1):
-	#	return -1
 	rects = detector(gray, 1)
         if len(rects) == 0:
                 return False, 0 
@@ -56,7 +56,7 @@ def disc(file):
 			arr[n][1] = y 
 			n += 1
 		if n < 68:
-			return 0	
+			return False, 0
 		for num1 in range(68):
 			for num2 in range(68):
 				if num2 > num1:
@@ -85,25 +85,20 @@ def disc(file):
 					else:
 						d += str(max)
 						d += ","
-
 	tn = tempfile.NamedTemporaryFile()
 	fp = open(tn.name,'w')
+	#model_data = np.genfromtxt(open("ffp.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 	# print "Debug(Got file name) :" + fp.name
 	fp.write(d)
 	fp.close()
 	X_t = np.genfromtxt(open(tn.name, "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 	X = X_t.reshape(1,-1)
 	sc = StandardScaler()
-	sc.fit(X)
+	#sc.fit(X)
+	sc.fit(model_data)
 	X_std = sc.transform(X)
 	clf = joblib.load('./preproY2016SVMModel.pkl')
-	print clf.predict(X.reshape(1,-1))
-	print clf.predict_proba(X.reshape(1,-1))
-	print tn.name
+	r = clf.predict_proba(X_std.reshape(1,-1))
         tn.close()
-        r = clf.predict_proba(X_std)
         return True, r[0][1]
 
-
-disc("face.jpg")
-disc("example_01.jpg")
