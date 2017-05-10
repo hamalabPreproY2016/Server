@@ -9,9 +9,11 @@
 
 import matplotlib.pyplot as plt
 
-from numpy import arange, cumsum, logical_and
+from numpy import arange, cumsum, logical_and, clip
 from scipy.signal import welch
 from scipy.interpolate import splrep, splev
+
+import json
 
 #Calculates the AUC of the PSD
 def psdauc(Fxx, Pxx, vlf=0.04, lf=0.15, hf=0.4):
@@ -80,15 +82,30 @@ def psd(rri):
 
 border = 2.0
 
+LFHF_MAX = 3.0
+LFHF_MIN = 1.0
+
+LFHF_RANGE = LFHF_MAX - LFHF_MIN
+
 def checkAngry(array):
 
     rri = [x["value"] for x in array]
 
     Fxx, Pxx, vlf, lf, hf = psd(rri);
 
-    if lf / hf < border:
-        isAngry = False
-    else:
-        isAngry = True
+    angryRate = clip(((lf / hf) - LFHF_MIN) / LFHF_RANGE, 0.0, 1.0)
 
-    return Fxx, Pxx, vlf, lf, hf, isAngry
+    # if lf / hf < border:
+    #     isAngry = False
+    # else:
+    #     isAngry = True
+
+    return Fxx, Pxx, vlf, lf, hf, angryRate
+
+if __name__ == '__main__':
+    jsonfile = open('angry_request.json', 'r')
+    dic = json.load(jsonfile)
+
+    Fxx, Pxx, vlf, lf, hf, angryRate = checkAngry(dic["heartrate"])
+
+    print("angryRate : " + str(angryRate))
