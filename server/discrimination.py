@@ -24,7 +24,7 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 global model_data
-model_data = np.genfromtxt(open("ffp.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
+model_data = np.genfromtxt(open("facialfeatures_model.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 
 def disc(file):
 	warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -87,7 +87,6 @@ def disc(file):
 						d += ","
 	tn = tempfile.NamedTemporaryFile()
 	fp = open(tn.name,'w')
-	#model_data = np.genfromtxt(open("ffp.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 	# print "Debug(Got file name) :" + fp.name
 	fp.write(d)
 	fp.close()
