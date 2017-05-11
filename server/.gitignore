@@ -1,1 +1,5 @@
 *.pyc
+*.jpg
+*.jpeg
+*.csv
+*.json

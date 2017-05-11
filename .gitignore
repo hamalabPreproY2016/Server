@@ -1,3 +1,5 @@
 server/static/*
 server/test.wav
 *pyc
+*jpg
+face_samples/*

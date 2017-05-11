@@ -40,8 +40,7 @@ def psd(rri):
     P = int((len(tx) - 256 / 128)) + 1
 
     #PSD with Welch's Method
-    Fxx, Pxx = welch(rrix, fs=4.0, window="hanning", nperseg=256, noverlap=128,
-                     detrend="linear")
+    Fxx, Pxx = welch(rrix, fs=4.0, window="hanning", nperseg=256, noverlap=128, detrend="linear")
 
     # print(Fxx)
     # print(Pxx)

@@ -16,18 +16,18 @@ import Vokaturi
 
 def analyze(file_name):
     
-    print ("Loading library...")
+#   print ("Loading library...")
     Vokaturi.load("../lib/Vokaturi_linux64.so")
-    print ("Analyzed by: %s" % Vokaturi.versionAndLicense())
+#   print ("Analyzed by: %s" % Vokaturi.versionAndLicense())
 
-    print ("Reading sound file...")
+#   print ("Reading sound file...")
     (sample_rate, samples) = scipy.io.wavfile.read(file_name)
-    print ("   sample rate %.3f Hz" % sample_rate)
+#   print ("   sample rate %.3f Hz" % sample_rate)
 
-    print ("Allocating Vokaturi sample array...")
+#   print ("Allocating Vokaturi sample array...")
     buffer_length = len(samples)
 
-    print ("   %d samples, %d channels" % (buffer_length, samples.ndim))
+#   print ("   %d samples, %d channels" % (buffer_length, samples.ndim))
     c_buffer = Vokaturi.SampleArrayC(buffer_length)
 
     if samples.ndim == 1:  # mono
@@ -35,27 +35,29 @@ def analyze(file_name):
     else:  # stereo
             c_buffer[:] = 0.5*(samples[:,0]+0.0+samples[:,1]) / 32768.0
 
-    print ("Creating VokaturiVoice...")
+#   print ("Creating VokaturiVoice...")
     voice = Vokaturi.Voice (sample_rate, buffer_length)
 
-    print ("Filling VokaturiVoice with samples...")
+#   print ("Filling VokaturiVoice with samples...")
     voice.fill(buffer_length, c_buffer)
 
-    print ("Extracting emotions from VokaturiVoice...")
+#   print ("Extracting emotions from VokaturiVoice...")
     quality = Vokaturi.Quality()
     emotionProbabilities = Vokaturi.EmotionProbabilities()
     voice.extract(quality, emotionProbabilities)
 
+    enabled = True
     if quality.valid:
-           print ("Neutral: %.3f" % emotionProbabilities.neutrality)
-           print ("Happy: %.3f" % emotionProbabilities.happiness)
-           print ("Sad: %.3f" % emotionProbabilities.sadness)
-           print ("Angry: %.3f" % emotionProbabilities.anger)
-           print ("Fear: %.3f" % emotionProbabilities.fear)
+#          print ("Neutral: %.3f" % emotionProbabilities.neutrality)
+#          print ("Happy: %.3f" % emotionProbabilities.happiness)
+#          print ("Sad: %.3f" % emotionProbabilities.sadness)
+#          print ("Angry: %.3f" % emotionProbabilities.anger)
+#          print ("Fear: %.3f" % emotionProbabilities.fear)
 	   value = emotionProbabilities.anger
     else:
-           value = -1
+           value = 0
+           enabled = False
 
     voice.destroy()
-    return value
+    return enabled, value 
 
