@@ -14,17 +14,6 @@ from discrimination import disc
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 
-@route('/emg-ave', method='POST')
-def EmgAverage():
-      jsonData = request.json
-      array = jsonData['emg']
-      average = emg.Getave(array)
-      print "average" + str(average)
-      body = json.dumps({'average' : average})
-      r = HTTPResponse(status=200, body=body)
-      r.set_header('Content-Type', 'application/json')
-      return r
-
 @route('/emg-mve', method='POST')
 def EmgMVE():
       jsonData = request.json
@@ -35,33 +24,6 @@ def EmgMVE():
       r = HTTPResponse(status=200, body=body)
       r.set_header('Content-Type', 'application/json')
       return r
-
-@route('/heart', method='POST')
-def hert_analyze():
-     jsonData = request.json
-     array = jsonData['array']
-     Fxx, Pxx, vlf, lf, hf, isAngry = psdRRi.checkAngry(array)     
-     body = json.dumps({'result' : isAngry})
-     r = HTTPResponse(status=200, body=body)
-     r.set_header('Content-Type', 'application/json')
-     return r
-
-@route('/voice', method='POST')
-def do_upload():
-    # uploadプロパティから音声ファイルを取得
-    upload = request.files.get('upload2', '')
-    if not upload.filename.lower().endswith(('.wav')):
-        return 'File extension not allowed!'
-    # tempfileの名前を取得してそこに保存
-    tf = tempfile.NamedTemporaryFile()
-    upload.save(tf.name, True)
-    # Vokaturiをして解析
-    result = vokaturi.analyze(tf.name)
-    # 解析結果を保存
-    body = json.dumps({'result' : result})
-    r = HTTPResponse(status=200, body=body)
-    r.set_header('Content-Type', 'application/json')
-    return r
 
 @route('/angry', method='POST')
 def do_upload():
@@ -86,8 +48,8 @@ def do_upload():
     
     # 心拍を解析 angryValueを返す
     Fxx, Pxx, vlf, lf, hf, isAngry = psdRRi.checkAngry(heartrate)
-    result.update({"heartrate" : {"angryValue" :  1 if isAngry else 0}})
-    print "analyze face : " + str(isAngry)   
+    result.update({"heartrate" : {"angryValue" :  isAngry}})
+    print "analyze hertrate : " + str(isAngry)   
 
     # 筋電を解析 angryValue, isMove
     moveF, isAngryByEmg = emg.EmgAnarayze(emgList, emg)
