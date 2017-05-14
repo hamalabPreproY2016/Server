@@ -13,7 +13,7 @@ import subprocess
 from discrimination import disc
 
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
-
+ 
 @route('/emg-mve', method='POST')
 def EmgMVE():
       jsonData = request.json
@@ -49,12 +49,11 @@ def do_upload():
     # 心拍を解析 angryValueを返す
     Fxx, Pxx, vlf, lf, hf, isAngry = psdRRi.checkAngry(heartrate)
     result.update({"heartrate" : {"angryValue" :  isAngry}})
-    print "analyze hertrate : " + str(isAngry)   
+    print "analyze-hertrate : angry " + str('%03.3f' % isAngry)   
 
     # 筋電を解析 angryValue, isMove
     moveF, isAngryByEmg = emg.EmgAnarayze(emgList, emg)
-    print "is Move" + str(moveF)
-    print "analyze emg : " + str(isAngryByEmg)
+    print "analyze-emg      : angry " + str(isAngryByEmg) + " isMove " + str(moveF)
     result.update({"emg" : {"angryValue" : 1 if isAngryByEmg else 0, "isMove" : moveF}})
     
     # 音声を解析 angryValue, enabled
@@ -62,7 +61,7 @@ def do_upload():
     voice.save(tf.name, True)
     subprocess.call( ["sh", "wavConverter.sh", str(tf.name)] )
     enabled, isAngryByVoice = vokaturi.analyze(tf.name)
-    print "analyze-voice : " + str(isAngryByVoice)
+    print "analyze-voice    : angry " + str('%03.3f' % isAngryByVoice) + " enabled " + str(enabled) 
     result.update({"voice" : {"angryValue" :  isAngryByVoice, "enabled" : enabled}})
     tf.close()
     
@@ -71,26 +70,27 @@ def do_upload():
     face.save(rf.name, True)
     face.save("./temp.jpg", True)
     isFace, ff = disc(rf.name)
-    if not isFace :
-        print "notFace"
-    print "analyze-face : " + str(ff)
+    print "analyze-face     : angry " + str('%03.3f' %ff) + " isFace " + str(isFace) 
     result.update({"face" : {"angryValue" : ff, "isFace" : isFace}})
     rf.close()
+    
+    print " "
 
     # 本質的な怒りを解析
     angryBody = False
+    print "analyze-body     : " + str(angryBody) 
     result.update({"angry-body" : angryBody})
     
     # 見た目の怒りを解析
     angryLook = True
+    print "analyze-look     : " + str(angryLook)
     result.update({"angry-look" : angryLook})
 
     # ギャップを解析
-    angryGap = False
-    if angryBody != angryLook :
-        angryGap = True
+    angryGap = angryBody != angryLook
+    print "analyze-gap      : " + str(angryGap) 
     result.update({"angry-gap" : angryGap})
-       
+    
     # 解析結果をjsonにしてアップロード 
     body = json.dumps(result)
     r = HTTPResponse(status=200, body=body)
