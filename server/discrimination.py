@@ -24,7 +24,7 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 global model_data
-model_data = np.genfromtxt(open("facialfeatures_model.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
+model_data = np.genfromtxt(open("facialfeatures_model20170525.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 
 def disc(file):
 	warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -96,7 +96,7 @@ def disc(file):
 	#sc.fit(X)
 	sc.fit(model_data)
 	X_std = sc.transform(X)
-	clf = joblib.load('./preproY2016SVMModel.pkl')
+	clf = joblib.load('./preproY2016SVMModel20170525.pkl')
 	r = clf.predict_proba(X_std.reshape(1,-1))
         tn.close()
         return True, r[0][1]

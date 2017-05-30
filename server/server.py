@@ -13,7 +13,18 @@ import subprocess
 from discrimination import disc
 import angry_predict
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
+
+# 筋電の判定関数作成
+emg.accumulation()
  
+@route('/checker', method='GET')
+def Checker():
+      body = json.dumps({'check' : True})
+      r = HTTPResponse(status=200, body=body)
+      r.set_header('Content-Type', 'application/json')
+      return r
+
+
 @route('/emg-mve', method='POST')
 def EmgMVE():
       jsonData = request.json
@@ -35,11 +46,10 @@ def do_upload():
     if not face.filename.lower().endswith('.jpg'):
         return 'File extension not allowed!!'
     jsonData = json.loads(request.forms.get('json'))
-    emgAve = jsonData['emg-mve']
+    mve = jsonData['emg-mve']
     emgList = jsonData['emg']
     heartrate = jsonData['heartrate']
     sendTime = jsonData['send-time']
-    mve = 500 
     f = open('write.json', 'w')
     f.write(json.dumps(jsonData))
     f.close() 
@@ -52,7 +62,7 @@ def do_upload():
     print "analyze-hertrate : angry " + str('%03.3f' % heartRateAngry)   
 
     # 筋電を解析 angryValue, isMove
-    isEnabledEmg, emgAngry = emg.EmgAnarayze(emgList, emg)
+    isEnabledEmg, emgAngry = emg.allAngryjudge(emgList, mve)
     print "analyze-emg      : angry " + str(emgAngry) + " isMove " + str(isEnabledEmg)
     result.update({"emg" : {"angryValue" : emgAngry, "isMove" : isEnabledEmg}})
     
@@ -81,12 +91,12 @@ def do_upload():
 
     
     # 本質的な怒りを解析
-    print "analyze-body     : " + str(angryBody) 
+    print "analyze-body     : " + str('%03.3f' % angryBody) 
     angryBody = True if angryBody > 0.5 else False
     result.update({"angry-body" : angryBody})
     
     # 見た目の怒りを解析
-    print "analyze-look     : " + str(angryLook)
+    print "analyze-look     : " + str('%03.3f' % angryLook)
     angryLook = True if angryLook > 0.5 else False
     result.update({"angry-look" : angryLook})
 
