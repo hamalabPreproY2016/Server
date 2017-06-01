@@ -11,6 +11,8 @@ array = []
 # 配列から2要素間隔で平均値を出し、その最大値をMVEとする
 def GetMve( c ) :
      ave_list = []
+     if len(c) == 0:
+         return 0
      for i in range(len(c) / 2):
          begin = i * 2
          f = c[begin]["value"]

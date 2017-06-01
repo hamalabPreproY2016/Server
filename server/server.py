@@ -4,19 +4,13 @@ import sys, codecs
 import bottle.ext.sqlalchemy
 import sqlalchemy
 import sqlalchemy.ext.declarative
-import vokaturi
-import psdRRi
 import simplejson as json
 import tempfile
-import emg
 import subprocess
-from discrimination import disc
-import angry_predict
+import analyze_angry
+import math
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
-
-# 筋電の判定関数作成
-emg.accumulation()
- 
+PRECISION = 6
 @route('/checker', method='GET')
 def Checker():
       body = json.dumps({'check' : True})
@@ -46,64 +40,68 @@ def do_upload():
     if not face.filename.lower().endswith('.jpg'):
         return 'File extension not allowed!!'
     jsonData = json.loads(request.forms.get('json'))
+
     mve = jsonData['emg-mve']
-    emgList = jsonData['emg']
-    heartrate = jsonData['heartrate']
+    emg_arr = jsonData['emg']
+    heart_arr = jsonData['heartrate']
     sendTime = jsonData['send-time']
-    f = open('write.json', 'w')
-    f.write(json.dumps(jsonData))
-    f.close() 
+    
+    temp_voice = tempfile.NamedTemporaryFile()
+    voice_path = temp_voice.name
+    voice.save(voice_path, True)
+    subprocess.call(["sh", "wavConverter.sh", str(voice_path)])
+    
+    temp_face = tempfile.NamedTemporaryFile()
+    face_path = temp_face.name
+    face.save(face_path, True)
+    # face.save("./temp.jpg"True)
+    
+    # f = open('write.json', 'w')
+    # f.write(json.dumps(jsonData))
+    # f.close() 
+    
     # 結果を入れる辞書型を作成 返す送信時間を入れる
     result = {"send-time" : sendTime}
     
+    # 各センサー値を解析
+    heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled = analyze_angry.analyzeSensor(heart_arr, emg_arr, voice_path, face_path, mve)
+
+    # 各センサー
+    body_angry, look_angry, gap = analyze_angry.analyzeAngry(heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled)
+
     # 心拍を解析 angryValueを返す
-    Fxx, Pxx, vlf, lf, hf, heartRateAngry = psdRRi.checkAngry(heartrate)
-    result.update({"heartrate" : {"angryValue" :  heartRateAngry}})
-    print "analyze-hertrate : angry " + str('%03.3f' % heartRateAngry)   
+    result.update({"heartrate" : {"angryValue" :  round(heart_angry, PRECISION)}})
+    print "analyze-hertrate : angry " + str('%03.3f' % heart_angry)   
 
     # 筋電を解析 angryValue, isMove
-    isEnabledEmg, emgAngry = emg.allAngryjudge(emgList, mve)
-    print "analyze-emg      : angry " + str(emgAngry) + " isMove " + str(isEnabledEmg)
-    result.update({"emg" : {"angryValue" : emgAngry, "isMove" : isEnabledEmg}})
+    print "analyze-emg      : angry " + str('%03.3f' % emg_angry) + " isMove  " + str(emg_enabled)
+    result.update({"emg" : {"angryValue" : round(emg_angry, PRECISION), "isMove" : emg_enabled}})
     
     # 音声を解析 angryValue, enabled
-    tf = tempfile.NamedTemporaryFile()
-    voice.save(tf.name, True)
-    subprocess.call( ["sh", "wavConverter.sh", str(tf.name)] )
-    isEnabledVoice, voiceAngry = vokaturi.analyze(tf.name)
-    print "analyze-voice    : angry " + str('%03.3f' % voiceAngry) + " enabled " + str(isEnabledVoice) 
-    result.update({"voice" : {"angryValue" :  voiceAngry, "enabled" : isEnabledVoice}})
-    tf.close()
+    print "analyze-voice    : angry " + str('%03.3f' % voice_angry) + " enabled " + str(voice_enabled) 
+    result.update({"voice" : {"angryValue" :  round(voice_angry, PRECISION), "enabled" : voice_enabled}})
     
     # 写真を解析 angryValue, isFace
-    rf = tempfile.NamedTemporaryFile()
-    face.save(rf.name, True)
-    face.save("./temp.jpg", True)
-    isEnabledFace, faceAngry = disc(rf.name)
-    print "analyze-face     : angry " + str('%03.3f' % faceAngry) + " isFace " + str(isEnabledFace) 
-    result.update({"face" : {"angryValue" : faceAngry, "isFace" : isEnabledFace}})
-    rf.close()
+    print "analyze-face     : angry " + str('%03.3f' % face_angry) + " isFace  " + str(face_enabled) 
+    result.update({"face" : {"angryValue" : round(face_angry, PRECISION), "isFace" : face_enabled}})
     
     print " "
 
-
-    angryBody, angryLook = angry_predict.angry_predict(heartRateAngry, emgAngry, isEnabledEmg, faceAngry, isEnabledFace, voiceAngry, isEnabledVoice);
-
-    
     # 本質的な怒りを解析
-    print "analyze-body     : " + str('%03.3f' % angryBody) 
-    angryBody = True if angryBody > 0.5 else False
-    result.update({"angry-body" : angryBody})
+    print "analyze-body     : " + str('%03.3f' % body_angry) 
+    result.update({"angry-body" : round(body_angry, PRECISION)})
     
     # 見た目の怒りを解析
-    print "analyze-look     : " + str('%03.3f' % angryLook)
-    angryLook = True if angryLook > 0.5 else False
-    result.update({"angry-look" : angryLook})
+    print "analyze-look     : " + str('%03.3f' % look_angry)
+    result.update({"angry-look" : round(look_angry, PRECISION)})
 
     # ギャップを解析
-    angryGap = angryBody != angryLook
-    print "analyze-gap      : " + str(angryGap) 
-    result.update({"angry-gap" : angryGap})
+    print "analyze-gap      : " + str(gap) 
+#    result.update({"angry-gap" : gap})
+
+    temp_voice.close()
+    temp_face.close()
+    
     # 解析結果をjsonにしてアップロード 
     body = json.dumps(result)
     r = HTTPResponse(status=200, body=body)
