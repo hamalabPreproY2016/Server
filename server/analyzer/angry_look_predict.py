@@ -13,7 +13,9 @@ from keras.callbacks import ModelCheckpoint
 import numpy as np
 from numpy.random import *
 
-MODEL_NAME = "angry_look.hdf5"
+import os
+base = os.path.dirname(os.path.abspath(__file__))
+MODEL_NAME = os.path.normpath(os.path.join(base, 'angry_look.hdf5'))
 
 # 学習させる関数
 def fit(X_train, y_train, model_name = MODEL_NAME):

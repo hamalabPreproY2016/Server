@@ -5,11 +5,19 @@ import emg
 import vokaturi
 from discrimination import disc 
 import angry_predict
+import subprocess
+import os
+
+base = os.path.dirname(os.path.abspath(__file__))
+converter = os.path.normpath(os.path.join(base, './wavConverter.sh'))
+
 emg.accumulation()
 
 ## センサーの値を解析
 def analyzeSensor(heart_arr, emg_arr, voice_path, face_path, mve) :
-    
+    ## 音声を読み取り可能な形式の変換
+    subprocess.call(["sh", converter, str(voice_path)])
+    print voice_path 
     ## 心拍を解析
     Fxx, Pxx, vlf, lf, hf, heart_angry = psdRRi.checkAngry(heart_arr)
     ## 筋電を解析

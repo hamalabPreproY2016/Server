@@ -23,14 +23,20 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
+
+base = os.path.dirname(os.path.abspath(__file__))
+csv_path = os.path.normpath(os.path.join(base, "facialfeatures_model20170525.csv"))
+dat_path = os.path.normpath(os.path.join(base, "shape_predictor_68_face_landmarks.dat"))
+pkl_path = os.path.normpath(os.path.join(base, "preproY2016SVMModel20170525.pkl"))
+
 global model_data
-model_data = np.genfromtxt(open("facialfeatures_model20170525.csv", "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
+model_data = np.genfromtxt(open(csv_path, "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 
 def disc(file):
 	warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 	warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 	detector = dlib.get_frontal_face_detector()
-	predictor = dlib.shape_predictor("./shape_predictor_68_face_landmarks.dat")
+	predictor = dlib.shape_predictor(dat_path)
 	arr_cal = []
 	arr_label = []
 	max = 0
@@ -96,7 +102,7 @@ def disc(file):
 	#sc.fit(X)
 	sc.fit(model_data)
 	X_std = sc.transform(X)
-	clf = joblib.load('./preproY2016SVMModel20170525.pkl')
+	clf = joblib.load(pkl_path)
 	r = clf.predict_proba(X_std.reshape(1,-1))
         tn.close()
         return True, r[0][1]

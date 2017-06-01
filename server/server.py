@@ -6,9 +6,7 @@ import sqlalchemy
 import sqlalchemy.ext.declarative
 import simplejson as json
 import tempfile
-import subprocess
-import analyze_angry
-import math
+import analyzer.analyze_angry as analyze_angry
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 PRECISION = 6
 @route('/checker', method='GET')
@@ -49,7 +47,6 @@ def do_upload():
     temp_voice = tempfile.NamedTemporaryFile()
     voice_path = temp_voice.name
     voice.save(voice_path, True)
-    subprocess.call(["sh", "wavConverter.sh", str(voice_path)])
     
     temp_face = tempfile.NamedTemporaryFile()
     face_path = temp_face.name
