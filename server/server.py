@@ -7,6 +7,7 @@ import sqlalchemy.ext.declarative
 import simplejson as json
 import tempfile
 import analyzer.analyze_angry as analyze_angry
+import analyzer.emg as emg
 sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
 PRECISION = 6
 @route('/checker', method='GET')
