@@ -1,4 +1,5 @@
 # vim:fileencoding=utf-8
+import copy
 import os
 import json
 import sys
@@ -46,7 +47,7 @@ def convertDict(inf, typ):
                    print value
                    continue
                if (typ is "bool") :
-                   value = bool(True if value is 1 else False)
+                   value = bool(True if value == 1 else False)
         except ValueError:
             continue
         dict_list.append({"time" : time, "value" : value})
@@ -70,12 +71,36 @@ def getTeature(dic, begin, time) :
     next_begin = len(dic)
     for index in range(begin, len(dic)) :
        if (dic[index]['time'] < time) :
-           t_count += 1 if dic[index]['value'] else -1
+           t_count += 1 if dic[index]['value'] is True else -1
        else:
            next_begin = index
            break
-    return True if t_count < 0 else False, next_begin
+    return False if t_count < 0 else True, next_begin
 
+def HigntAngryFilter(dic):
+    tmp_dic = copy.deepcopy(dic) 
+    for index in range(len(dic)):
+        if (dic[index]['value'] == True) :
+            if (index -2 >= 0) :
+                tmp_dic[index - 2]['value'] = True
+            if (index -1 >= 0) :
+                tmp_dic[index - 1]['value'] = True
+            if (index + 1 < len(dic)):
+                tmp_dic[index + 1]['value'] = True
+            if (index + 2 < len(dic)):
+                tmp_dic[index + 2]['value'] = True
+    return tmp_dic 
+
+def dictToCsv(name, dic):
+    temp_l = []
+    for index in range(len(dic)) :
+        temp_l.append([dic[index]['time'], dic[index]['value']])
+    with open(name, 'w') as f:
+        writer = csv.writer(f, lineterminator='\n')
+        writer.writerows(temp_l)
+
+  
+        
 # 引数を取得する
 argvs = sys.argv
 if (len(argvs) < 4):
@@ -129,7 +154,8 @@ mve_str = f.read()
 r = re.compile('\"0\",\"([0-9]*)\"')
 mve =  int(r.search(mve_str).group(1))
 f.close()
-f = open(json_dir + "/mve.json", 'w')
+url = json_dir + "/mve.json"
+f = open(url, 'w')
 json.dump({"value" : mve}, f, indent=4)
 f.close()
 
@@ -137,16 +163,27 @@ f.close()
 session_dict = convertJsonFile(csv_dir, json_dir, "session", "string")
 
 # lookとbody
+url = json_dir + "/look.json"
 look_dict = convertDict(lookfile, "bool")
-f = open(json_dir + "/look.json", 'w')
+f = open(url, 'w')
 json.dump(look_dict,f, indent=4)
 f.close()
+url = json_dir + "/body.json"
 body_dict = convertDict(bodyfile, "bool")
-f = open(json_dir + "/body.json", 'w')
+f = open(url, 'w')
 json.dump(body_dict, f, indent=4)
 f.close()
+
+# 怒りを強調させるフィルターをかける
+look_dict = HigntAngryFilter(look_dict)
+body_dict = HigntAngryFilter(body_dict)
+# CSVとして出力
+dictToCsv(csv_dir + "/look_F.csv", look_dict)
+dictToCsv(csv_dir + "/body_F.csv", body_dict)
+exit(0)
 end_flg = True 
 send_list = []
+
 # 送信データを作成
 emg_bn = -1
 face_bn = -1
@@ -239,8 +276,9 @@ while end_flg:
 
     # 各解析ストックデータをまとめる
     send_list.append({"emg" : emg_stk, "heartrate" : hr_stk, "face" : face_stk, "voice" : voice_stk, "send_time" : send_time, "mve" : mve, "look" : look, "body" : body})
+url = json_dir + "/sendData.json"
 
-f = open(json_dir + "/sendData.json", 'w')
+f = open(url, 'w')
 json.dump(send_list, f, indent=4)
 f.close()
 result = []
@@ -279,10 +317,12 @@ for element in send_list :
     csv_list.append([send_time, heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled, body_angry, look_angry, gap, body_teach, look_teach])
     p.update(count)
     count += 1
-f = open(json_dir + "/angry.json", 'w')
+url = json_dir + "/angry.json"
+f = open(url, 'w')
 json.dump(result, f, indent=4)
 f.close()
-with open(csv_dir + "/responseAngryServer.csv", 'w') as f:
+url = csv_dir + "/responseAngryServer.csv"
+with open(url, 'w') as f:
     writer = csv.writer(f, lineterminator='\n')
     writer.writerows(csv_list)
 
