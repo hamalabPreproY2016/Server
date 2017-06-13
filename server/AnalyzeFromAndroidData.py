@@ -180,7 +180,6 @@ body_dict = HigntAngryFilter(body_dict)
 # CSVとして出力
 dictToCsv(csv_dir + "/look_F.csv", look_dict)
 dictToCsv(csv_dir + "/body_F.csv", body_dict)
-exit(0)
 end_flg = True 
 send_list = []
 
