@@ -95,7 +95,7 @@ def do_upload():
 
     # ギャップを解析
     print "analyze-gap      : " + str(gap) 
-#    result.update({"angry-gap" : gap})
+    result.update({"angry-gap" : gap})
 
     temp_voice.close()
     temp_face.close()

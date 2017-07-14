@@ -7,7 +7,7 @@ import subprocess
 import csv
 import commands
 import json
-import analyzer.analyze_angry as analyze
+#import analyzer.analyze_angry as analyze
 import re
 from progressbar import ProgressBar
 base = os.path.dirname(os.path.abspath(__file__))
@@ -294,12 +294,12 @@ for element in send_list :
     look_teach = element['look']
     body_teach = element['body']
     send_time = element['send_time']
-    heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled = analyze.analyzeSensor(heart_arr, emg_arr, voice_path, face_path, mve)
+#    heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled = analyze.analyzeSensor(heart_arr, emg_arr, voice_path, face_path, mve)
     heart_angry = round(heart_angry, PRECISION)
     emg_angry = round(emg_angry, PRECISION)
     voice_angry = round(voice_angry, PRECISION)
     face_angry = round(face_angry, PRECISION)
-    body_angry, look_angry, gap = analyze.analyzeAngry(heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled)
+#    body_angry, look_angry, gap = analyze.analyzeAngry(heart_angry, emg_angry, emg_enabled, voice_angry, voice_enabled, face_angry, face_enabled)
     body_angry = round(body_angry, PRECISION)
     look_angry = round(look_angry, PRECISION)
     result.append({"heart" : {"value" : heart_angry}, 

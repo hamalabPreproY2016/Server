@@ -25,12 +25,14 @@ warnings.filterwarnings("ignore", message="numpy.dtype size changed")
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 base = os.path.dirname(os.path.abspath(__file__))
-csv_path = os.path.normpath(os.path.join(base, "facialfeatures_model20170525.csv"))
+csv_path = os.path.normpath(os.path.join(base, "facialfeatures_model.csv"))
 dat_path = os.path.normpath(os.path.join(base, "shape_predictor_68_face_landmarks.dat"))
-pkl_path = os.path.normpath(os.path.join(base, "preproY2016SVMModel20170525.pkl"))
+pkl_path = os.path.normpath(os.path.join(base, "preproY2016SVMModel.pkl"))
 
-global model_data
-model_data = np.genfromtxt(open(csv_path, "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
+global std
+global mean
+std=np.load('./analyzer/model_std_file.npy')
+mean=np.load('./analyzer/model_mean_file.npy')
 
 def disc(file):
 	warnings.filterwarnings("ignore", message="numpy.dtype size changed")
@@ -98,10 +100,7 @@ def disc(file):
 	fp.close()
 	X_t = np.genfromtxt(open(tn.name, "rb"), delimiter=",",usecols=np.arange(0,54672), dtype=float)
 	X = X_t.reshape(1,-1)
-	sc = StandardScaler()
-	#sc.fit(X)
-	sc.fit(model_data)
-	X_std = sc.transform(X)
+	X_std = (X - mean) / std 
 	clf = joblib.load(pkl_path)
 	r = clf.predict_proba(X_std.reshape(1,-1))
         tn.close()
