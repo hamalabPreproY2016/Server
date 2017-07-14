@@ -19,7 +19,7 @@ def angry_predict(heartrate, myo, myoEnable, face, faceEnable, voice, voiceEnabl
     bodyResult = heartrate * 0.5 + myo * 0.5 * myoEnable
     lookResult = face * 0.7 * faceEnable + voice * 0.3 * voiceEnable
 
-    return bodyResult, lookResult
+    return bodyResult > 0.5, lookResult > 0.5
 
 if __name__ == '__main__':
     bodyResult, lookResult = angry_predict(0.2, 0.3, True, 0.7, True, 0.8, True)
